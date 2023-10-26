@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  beammp-server:
+    build:
+      context: .
+      dockerfile: BeamMP.dockerfile
+    platform: linux/amd64
+    ports:
+      - "30814:30814"
+      - "30814:30814/udp" 
+    volumes:
+      - ./server:/root/beammp

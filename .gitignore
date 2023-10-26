@@ -1,0 +1,6 @@
+Server/Resources/Client/*
+Server/.sentry-native
+**/.DS_Store
+**/.vscode/*
+Server.log
+Server.old.log
