@@ -4,11 +4,11 @@
 
 [HTTP]
 # Enables the internal HTTP server
-HTTPServerEnabled = false
+HTTPServerEnabled = true
 # Recommended to have enabled for servers which face the internet. With SSL the server will serve https and requires valid key and cert files
 UseSSL = false
 # Which IP to listen on. Pick 0.0.0.0 for a public-facing server with no specific IP, and 127.0.0.1 or 'localhost' for a local server.
-HTTPServerIP = "127.0.0.1"
+HTTPServerIP = "0.0.0.0"
 HTTPServerPort = 8080
 SSLCertPath = "./.ssl/HttpServer/cert.pem"
 SSLKeyPath = "./.ssl/HttpServer/key.pem"
@@ -34,5 +34,5 @@ Name = "BeamMP Server"
 LogChat = true
 MaxCars = 3
 # AuthKey has to be filled out in order to run the server
-AuthKey = "0c047828-7394-4bde-8b9d-925c7387ec9e"
+AuthKey = "zddzd0c047828-7394-4bde-8b9d-925c7387ec9e"
 

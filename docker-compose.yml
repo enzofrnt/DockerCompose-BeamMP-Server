@@ -2,12 +2,56 @@ version: '3'
 
 services:
   beammp-server:
-    build:
-      context: .
-      dockerfile: BeamMP.dockerfile
     platform: linux/amd64
+    container_name: beammp-server
+    image: beammp-server
+    build:
+      context: ./BeamMP
+      dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "30814:30814"
       - "30814:30814/udp" 
+      - "8080:8080"
     volumes:
-      - ./server:/root/beammp
+      - shared:/root/beammmp
+    networks:
+      beammp-network:
+        ipv4_address: 172.69.69.2
+
+  back-py-end:
+    platform: linux/amd64
+    container_name: beammp-py-backend
+    image: beammp-py-backend
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    volumes:
+      #Dev volume
+      - ./BackEnd/Python-src:/app/
+      - shared:/root/shared
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      beammp-network:
+        ipv4_address: 172.69.69.3
+
+networks:
+  beammp-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.69.69.0/24
+
+volumes:
+  shared:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./BeamMP/Server/
+      o: bind
+
+  
