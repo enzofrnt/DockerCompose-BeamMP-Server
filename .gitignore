@@ -6,6 +6,7 @@ Server.log
 Server.old.log
 .sentry-native
 .Threads.log
+**/.ServerConfig.toml.swp
 BeamMP/Server/Resources/Client/2023 Alpine F1.zip
 BeamMP/Server/Resources/Client/2023 F1 BMW.zip
 BeamMP/Server/Resources/Client/2023 Lotus F1.zip
@@ -20,3 +21,6 @@ BeamMP/Server/Resources/Client/Renault Megane RS Trophy.zip
 BeamMP/Server/Resources/Client/Tank T-80UD.zip
 BeamMP/Server/Resources/Client/Tauri F1.zip
 BeamMP/Server/Resources/Client/Williams F1 2023.zip
+BackEnd/Python-src/supervisord.log
+BackEnd/Python-src/supervisord.pid
+BackEnd/Python-src/start-tunnel.sh

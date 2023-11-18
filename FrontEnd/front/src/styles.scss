@@ -1,0 +1,19 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* body {
+    background-color: black;
+    color:white
+} */
+html, body {
+    height: 100%;
+
+    margin: 0;
+    scroll-behavior: smooth !important;
+}
+
+app-root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%; 
+
+}

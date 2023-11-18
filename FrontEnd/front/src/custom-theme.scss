@@ -1,0 +1,129 @@
+
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@use "sass:map";
+@use '@angular/material' as mat;
+// Plus imports for other components in your app.
+@import "../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css";
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat.core();
+
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue. Available color palettes: https://material.io/design/color/
+
+$front-prim: (
+    50 : #eef5ee,
+    100 : #d5e6d5,
+    200 : #b9d6b9,
+    300 : #9dc69d,
+    400 : #88b988,
+    500 : #73ad73,
+    600 : #6ba66b,
+    700 : #609c60,
+    800 : #569356,
+    900 : #438343,
+    A100 : #dbffdb,
+    A200 : #a8ffa8,
+    A400 : #75ff75,
+    A700 : #5cff5c,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #000000,
+        600 : #000000,
+        700 : #000000,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$front-sec: (
+    50 : #e7e7e7,
+    100 : #c2c2c2,
+    200 : #999999,
+    300 : #707070,
+    400 : #525252,
+    500 : #333333,
+    600 : #2e2e2e,
+    700 : #272727,
+    800 : #202020,
+    900 : #141414,
+    A100 : #ef6e6e,
+    A200 : #ea4040,
+    A400 : #f60000,
+    A700 : #dd0000,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #ffffff,
+        400 : #ffffff,
+        500 : #ffffff,
+        600 : #ffffff,
+        700 : #ffffff,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #000000,
+        A200 : #ffffff,
+        A400 : #ffffff,
+        A700 : #ffffff,
+    )
+);
+
+
+// $frontend-primary: mat.define-palette(mat.$indigo-palette);
+// $frontend-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+
+$frontend-primary : mat.define-palette($front-prim);
+$frontend-accent: mat.define-palette($front-sec);
+
+// The warn palette is optional (defaults to red).
+$frontend-warn: mat.define-palette(mat.$red-palette);
+
+// Create the theme object. A theme consists of configurations for individual
+// theming systems such as "color" or "typography".
+$frontend-theme: mat.define-light-theme((
+  color: (
+    primary: $frontend-primary,
+    accent: $frontend-accent,
+    warn: $frontend-warn,
+  )
+));
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+@include mat.all-component-themes($frontend-theme);
+
+.mat-mdc-snack-bar-container {
+    &.snackbar {
+      --mdc-snackbar-container-color: #333 ;
+      
+      --mdc-snackbar-supporting-text-color: white ;
+      
+      --mat-snack-bar-button-color: #609c60 ;
+
+    }
+    
+    &.snackbar-error {
+      --mdc-snackbar-container-color: #333 !important;
+      
+      --mdc-snackbar-supporting-text-color: white !important;
+      
+      --mat-snack-bar-button-color: red !important;
+
+    }
+  }
+

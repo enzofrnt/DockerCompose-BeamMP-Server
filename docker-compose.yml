@@ -3,7 +3,7 @@ version: '3'
 services:
   beammp-server:
     platform: linux/amd64
-    container_name: beammp-server
+    container_name: ${SERVER_CONTAINER_NAME}
     image: beammp-server
     build:
       context: ./BeamMP
@@ -14,7 +14,7 @@ services:
       - "30814:30814/udp" 
       - "8080:8080"
     volumes:
-      - shared:/root/beammmp
+      - shared:/root/beammp
     networks:
       beammp-network:
         ipv4_address: 172.69.69.2
@@ -26,17 +26,37 @@ services:
     build:
       context: ./BackEnd
       dockerfile: Dockerfile
+    env_file:
+      - .env
     restart: unless-stopped
     ports:
       - "8081:8081"
     volumes:
       #Dev volume
       - ./BackEnd/Python-src:/app/
+      #Prod volume
       - shared:/root/shared
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       beammp-network:
         ipv4_address: 172.69.69.3
+
+  front-end:
+    platform: linux/amd64
+    container_name: beammp-webui
+    image: beammp-webui
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    networks:
+      beammp-network:
+        ipv4_address:  172.69.69.4
+
 
 networks:
   beammp-network:

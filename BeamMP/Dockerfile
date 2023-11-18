@@ -13,15 +13,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy the server files
 COPY ./Server /root/beammp/
+COPY ./HealthCheck.sh /root/HealthCheck.sh
 
 # Set the working directory to /root/beammp
-WORKDIR /root/beammmp
+WORKDIR /root/beammp
 
 # Réglage du fuseau horaire
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-HEALTHCHECK --interval=30s --timeout=30s --retries=3 CMD echo coucoucou
+HEALTHCHECK --interval=30s --timeout=15s --retries=2 CMD /root/HealthCheck.sh
 
 # Launch the server
 #CMD ["tail", "-f", "/dev/null"]
