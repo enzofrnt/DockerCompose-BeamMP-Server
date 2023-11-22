@@ -37,11 +37,6 @@
                   "type": "initial",
                   "maximumWarning": "500kb",
                   "maximumError": "1mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
                 }
               ],
               "outputHashing": "all"
@@ -98,6 +93,6 @@
     }
   },
   "cli": {
-    "analytics": "eae10c11-27af-40a0-a044-d4a276d572c5"
+    "analytics": false
   }
 }

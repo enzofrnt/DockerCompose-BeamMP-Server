@@ -1,7 +1,7 @@
 FROM python:3.13-rc-alpine3.17
 
 # Installe tzdata pour la configuration du fuseau horaire
-RUN apk add --no-cache tzdata supervisor openrc curl gettext
+RUN apk add --no-cache tzdata supervisor curl gettext
 
 # Définit le fuseau horaire (remplacez par votre fuseau horaire souhaité)
 ENV TZ=Europe/Paris

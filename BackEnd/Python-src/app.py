@@ -2,6 +2,7 @@
 
 """
 from flask import Flask, jsonify, request, send_file, redirect
+from flask_cors import CORS
 from multiprocessing import Process
 from time import sleep
 import os
@@ -11,13 +12,26 @@ import tomli_w
 import io
 import requests
 import os
+import pytz
+from datetime import datetime
+import re
 
 client = docker.from_env()
+
+global app
 app = Flask(__name__)
+origins = re.compile(r"https?://([a-z0-9]+[.])*beamui.enzo-frnt.fr")
+CORS(app, origins=origins)
+
+from mods import mods
+
+app.register_blueprint(mods)
+
 container_name = os.getenv('SERVER_CONTAINER_NAME')
 mod_folder = "/root/shared/Resources/Client/"
 conf_file = "/root/shared/ServerConfig.toml"
 maps = [item.strip() for item in (os.getenv('MAPS_LIST') or '').split(',')]
+
 
 # Get the right container
 def get_container():
@@ -26,11 +40,29 @@ def get_container():
 # Get status of the right container
 def get_container_infos():
     container = get_container()
+
+    # Obtenir la chaîne de date et d'heure UTC
+    utc_str = container.attrs.get('State', {}).get('StartedAt')
+
+    # Tronquer les microsecondes à six chiffres si nécessaire
+    if len(utc_str) > 26:
+        utc_str = utc_str[:26] + 'Z'
+
+    # Analyser la chaîne pour obtenir un objet datetime avec le fuseau horaire UTC
+    utc = datetime.strptime(utc_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+    utc = utc.replace(tzinfo=pytz.utc)
+
+    # Convertir en heure locale de Paris
+    paris_timezone = pytz.timezone('Europe/Paris')
+    local = utc.astimezone(paris_timezone)
+
+    # Créer un dictionnaire avec les informations du conteneur
     container_info = {
         'id': container.id,
         'image': container.image.tags,
         'status': container.status,
-        'name': container.name
+        'name': container.name,
+        'startedat': local.strftime('%Y-%m-%d %H:%M:%S')  # Formaté pour l'affichage
     }
     # Récupérer l'état de santé si disponible
     health_status = container.attrs.get('State', {}).get('Health', {}).get('Status')
@@ -39,27 +71,56 @@ def get_container_infos():
     return container_info
 
 # Set the right conf related to the key
-def set_conf(key):
+def set_conf(key, value):
     try :
-        app.logger.info("set_conf")
-        app.logger.info(request.get_data(as_text=True))
         with open(conf_file, 'rb') as conf:
              conf_content = tomli.load(conf)
              general_section = conf_content.get("General", {})
-             general_section[key] = request.get_data(as_text=True)  
+             general_section[key] = value
         with open(conf_file, 'wb') as conf:
              tomli_w.dump(conf_content, conf)
         return True
     except:
-        app.logger.info("set_conf error")
         return False
+    
+@app.route('/uptodate', methods=['GET'])
+def upToDate():
+    lastContainerStart = get_container_infos().get('startedat')
+    lastConfModif = datetime.fromtimestamp(os.path.getmtime(conf_file)).strftime('%Y-%m-%d %H:%M:%S')
+    if lastContainerStart == lastConfModif or lastContainerStart > lastConfModif:
+        for nom in os.listdir(mod_folder):
+            chemin_complet = os.path.join(mod_folder, nom)
+            if os.path.isfile(chemin_complet):
+                if nom.endswith(".zip") or nom.endswith(".zip.stop") and datetime.fromtimestamp(os.path.getmtime(chemin_complet)).strftime('%Y-%m-%d %H:%M:%S') > lastContainerStart:
+                    return jsonify({"needreboot":True})
+        return jsonify({"needreboot":False})
+    else :
+        return jsonify({"needreboot":True})
 
+    
 """
 Working request example :
 curl https://{URL_TO_BEAMMP_API}/config
 """
 @app.route('/config', methods=['GET'])
 def get_config():
+    api_config = {
+        "name": "BeamMP API",
+        "version": "1.0.0",
+        "CORS": True
+    }
+
+
+    return jsonify({
+        "apiConfig": api_config
+    })
+
+"""
+Working request example :
+curl https://{URL_TO_BEAMMP_API}/servconfig
+"""
+@app.route('/servconfig', methods=['GET'])
+def get_serv_config():
     return jsonify({
         "container_name": container_name,
         "mod_folder": mod_folder,
@@ -126,65 +187,6 @@ def status_container():
 
 """
 Working request example :
-curl https://{URL_TO_BEAMMP_API}/getmods
-"""
-@app.route('/getmods', methods=['GET'])
-def get_mod():
-    folder_content = {}
-    for nom in os.listdir(mod_folder):
-        chemin_complet = os.path.join(mod_folder, nom)
-        if os.path.isdir(chemin_complet):
-            type_element = "dossier"
-        else:
-            type_element = "fichier"
-
-        folder_content[nom] = {
-            "type": type_element,
-            "chemin": chemin_complet,
-        }
-    return jsonify(folder_content)
-
-"""
-Working request example :
-curl https://{URL_TO_BEAMMP_API}/getmod/{mod_name}
-"""
-@app.route('/downmod/<mod_name>', methods=['GET'])
-def download_mod(mod_name):
-    # Get the path of the mod
-    mod_path = os.path.join(mod_folder, mod_name)
-    
-    # Verify if the mod exists
-    if os.path.exists(mod_path):
-        # Verify if the mod is a file (and not a directory)
-        if os.path.isfile(mod_path):
-            return send_file(
-               mod_path
-            )
-        else:
-            return jsonify({"error": "Wrong mod"}), 404
-    else:
-        return jsonify({"error": "Wrong mod"}), 404
-    
-"""
-Working request example :
-https://{URL_TO_BEAMMP_API}/upmod/{mod_name}
-"""
-@app.route('/upmod', methods=['POST'])
-def upload_mod():
-    if 'file' not in request.files:
-        return redirect(request.url)
-    file = request.files['file']
-    if file.filename == '':
-        return redirect(request.url)
-    if file and file.filename.endswith('.zip') :
-        # Enregistrer le fichier
-        file.save('path/to/save/' + file.filename)
-        return 'Fichier uploadé avec succès !'
-    return jsonify({"error": "File need to be a zip"}), 400
-
-
-"""
-Working request example :
 curl https://{URL_TO_BEAMMP_API}/getconf
 """
 @app.route('/getconf', methods=['GET'])
@@ -224,34 +226,43 @@ def get_conf_key(key):
 
 @app.route('/setconf/authkey', methods=['POST'])     
 def set_conf_authkey():
-    return jsonify(request.json)
+    if set_conf("AuthKey", request.get_data(as_text=True)) :
+        return jsonify({"message": "AuthKey changed"})
+    return jsonify({"message": "AuthKey not changed"})
 
 @app.route('/setconf/debug', methods=['POST'])
 def set_conf_debug():
-    return jsonify({"message": "Not implemented"}), 501
+    request_data = request.get_data()
+    if request_data.isinstance(bool):
+        if set_conf("Debug", bool(request.get_data(as_text=True))) :
+            return jsonify({"message": "Debug changed"})
+    return jsonify({"message": "Debug not changed"})
 
 @app.route('/setconf/description', methods=['POST'])
 def set_conf_description():
-    return jsonify({"message": "Not implemented"}), 501
+    request = request.get_data(as_text=True)
+    if set_conf("Description", request.get_data(as_text=True)) :
+        return jsonify({"message": "Description changed"})
+    return jsonify({"message": "Description not changed"})
 
 @app.route('/setconf/logchat', methods=['POST'])
 def set_conf_logchat():
-    return jsonify({"message": "Not implemented"}), 501
+    request_data = request.get_data(as_text=True)
+    if request_data.isinstance(bool):
+        if set_conf("LogChat", bool(request.get_data(as_text=True))) :
+            return jsonify({"message": "LogChat changed"})
+    return jsonify({"message": "LogChat not changed"})
 
 """
 Working request example :
-curl -X POST https://beamapi.enzo-frnt.fr/setconf/map -H "Content-Type: application/json" -d '/levels/{Your_map}/info.json' 
+curl -X POST https://{URL_TO_BEAMMP_API}/setconf/map -H "Content-Type: application/json" -d '/levels/{Your_map}/info.json' 
 """
 @app.route('/setconf/map', methods=['POST'])
 def set_conf_map():
-    app.logger.info(maps)
     request_data = request.get_data(as_text=True)
-    app.logger.info(request_data)
     request_data_split = request_data.split("/")
-    app.logger.info(request_data_split)
-    app.logger.info(len(request_data))
     if len(request_data_split) == 4 and request_data_split[0] == "" and request_data_split[1] == "levels" and request_data_split[3] == "info.json" and request_data_split[2] in maps:
-        if set_conf("Map") :
+        if set_conf("Map", request.get_data(as_text=True)) :
             return jsonify({"message": "Map changed"})
         else:
             return jsonify({"message": "Map not changed"})
@@ -259,15 +270,25 @@ def set_conf_map():
 
 @app.route('/setconf/maxcars', methods=['POST'])
 def set_conf_maxcars():
-    return jsonify({"message": "Not implemented"}), 501
+    request_data = request.get_data(as_text=True)
+    if request_data.isdigit() and int(request_data) > 0 and int(request_data) < 10:
+        if set_conf("MaxCars", int(request.get_data(as_text=True))) :
+            return jsonify({"message": "MaxCars changed"})
+    return jsonify({"message": "MaxCars not changed"})
 
 @app.route('/setconf/maxplayers', methods=['POST'])
 def set_conf_maxplayers():
-    return jsonify({"message": "Not implemented"}), 501
+    request_data = request.get_data(as_text=True)
+    if request_data.isdigit() and int(request_data) > 0 and int(request_data) < 20:
+        if set_conf("MaxPlayers", int(request.get_data(as_text=True))) :
+            return jsonify({"message": "MaxPlayers changed"})
+    return jsonify({"message": "MaxPlayers not changed"})
 
 @app.route('/setconf/name', methods=['POST'])
 def set_conf_name():
-    return jsonify({"message": "Not implemented"}), 501
+    if set_conf("Name", request.get_data(as_text=True)) :
+        return jsonify({"message": "Name changed"})
+    return jsonify({"message": "Name not changed"})
 
 
 if __name__ == '__main__':

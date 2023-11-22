@@ -1,0 +1,75 @@
+<div class="table-container" style="display: inline-block;">
+  <style>
+    table { width: auto; border-collapse: collapse; text-align: left; font-family: Arial, sans-serif; } 
+    thead th { background-color: #4CAF50; color: white; padding: 10px; } 
+    tbody tr:nth-child(odd) { background-color: #f2f2f2; } 
+    tbody tr:nth-child(even) { background-color: #ffffff; } 
+    td { padding: 8px; border: 1px solid #ddd; } 
+    tbody tr:hover { background-color: #ddd; } 
+    input[type="checkbox"] { cursor: pointer; } 
+    tbody tr:hover td input[type="checkbox"] { background-color: transparent; }
+    button {margin: 12px;}
+    .button-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .mod-disabled {
+      color: grey; /* ou une autre couleur de votre choix pour "griser" */
+    }
+    .button-mod {
+      border-radius: 5px;
+      height: 30px;
+      width: 100px;
+      transition: box-shadow 0.3s, transform 0.3s;
+    }
+
+    .button-mod:hover {
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+      transform: scale(1.005);
+    }
+    .button-mod-active {
+      background-color: rgb(106, 173, 119);
+      font-size: 14px;
+    }
+
+    .button-mod-inactive {
+      background-color: red;
+      font-size: 14px;
+    }
+
+    .mod-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+  <table>
+    <thead>
+      <tr>
+        <th>
+          <input type="checkbox" (change)="selectAllMods($event)">
+          Select all mods
+      </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let mod of mods" (click)="toggleModSelection(mod.name)">
+        <td class='mod-container'[ngClass]="{'mod-disabled': !mod.enable}">
+          <div>
+            <input type="checkbox" [checked]="mod.isSelected" [disabled]="!mod.enable">
+            {{ mod.name }}
+          </div>
+          <button class="button-mod" [ngClass]="mod.enable ? 'button-mod-active' : 'button-mod-inactive'" (click)="changeModStatus(mod); $event.stopPropagation()">
+            {{ mod.enable ? 'Activé' : 'Désactivé' }}
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="button-container">
+    <button (click)="downloadSelectedMods()">Télécharger les Mods Sélectionnés</button>
+  </div>
+</div>

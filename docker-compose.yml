@@ -2,6 +2,7 @@ version: '3'
 
 services:
   beammp-server:
+    #If you're using Mac M1 or some other ARM based CPU, this is needed to make server work
     platform: linux/amd64
     container_name: ${SERVER_CONTAINER_NAME}
     image: beammp-server
@@ -20,7 +21,6 @@ services:
         ipv4_address: 172.69.69.2
 
   back-py-end:
-    platform: linux/amd64
     container_name: beammp-py-backend
     image: beammp-py-backend
     build:
@@ -41,8 +41,7 @@ services:
       beammp-network:
         ipv4_address: 172.69.69.3
 
-  front-end:
-    platform: linux/amd64
+  front-end:  
     container_name: beammp-webui
     image: beammp-webui
     build:
@@ -52,7 +51,7 @@ services:
       - .env
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "8082:80"
     networks:
       beammp-network:
         ipv4_address:  172.69.69.4

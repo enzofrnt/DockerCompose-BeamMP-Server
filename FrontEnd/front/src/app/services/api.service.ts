@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { API_URL } from '../env';
+import { Observable } from 'rxjs';
+import { Mod } from '../models/mod';
 
 @Injectable({
     providedIn: 'root'
@@ -33,6 +35,47 @@ import { API_URL } from '../env';
             console.log(this.conf?.API_URL);
             return this.conf?.API_URL;
         }
-      
+    }
+
+    getConfig(): Observable<any> {
+        return this.http.get(this.getEndpointAPI() + '/config');
+    }
+
+    getServerConfig(): Observable<any> {
+        return this.http.get(this.getEndpointAPI() + '/servconfig');
+    }
+
+    startServer(): Observable<any> {
+        return this.http.get(this.getEndpointAPI() + '/start');
+    }
+
+    stopServer(): Observable<any> {
+        return this.http.get(this.getEndpointAPI() + '/stop');
+    }
+
+    restartServer(): Observable<any> {
+        return this.http.get(this.getEndpointAPI() + '/restart');
+    }
+
+    getServerStatus(): Observable<any> {
+        return this.http.get(this.getEndpointAPI() + '/status');
+    }
+
+    getMods(): Observable<{[key: string]: Mod}> {
+      return this.http.get<{[key: string]: Mod}>(`${this.getEndpointAPI()}/getmods`);
+    }
+
+    downloadMod(modName: string): Observable<Blob> {
+      return this.http.get(`${this.getEndpointAPI()}/downmod/${modName}`, {
+        responseType: 'blob'
+      });
+    }
+
+    enableMod(modName: string): Observable<any> {
+      return this.http.get(`${this.getEndpointAPI()}/enable/${modName ? modName.replace('.zip', '') : ''}`);
+    }
+  
+    disableMod(modName: string): Observable<any> {
+      return this.http.get(`${this.getEndpointAPI()}/disable/${modName ? modName.replace('.zip', '') : ''}`);
     }
   }

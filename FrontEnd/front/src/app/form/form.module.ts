@@ -1,7 +1,7 @@
 import {NgModule, APP_INITIALIZER } from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
 import {MatListModule} from '@angular/material/list';
-import {AppRoutingModule} from './app-routing.module';
+import {AppRoutingModule} from '../app-routing.module';
 import {HttpClientModule} from '@angular/common/http';
 import {ReactiveFormsModule} from '@angular/forms'; 
 import {MatIconModule} from '@angular/material/icon'; 
@@ -14,29 +14,18 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatSelectModule} from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { FormModule } from './form/form.module';
+import { MatDialogModule } from '@angular/material/dialog';
+
 
 
 
 // Components
-import {AppComponent} from './app.component';
-import { NavBarComponent } from './nav-bar/nav-bar.component';
-import { FooterComponent } from './footer/footer.component';
-import { ApiService } from './services/api.service';
-import { FormComponent } from './form/form.component';
-
-export function initializeApp(apiService: ApiService) {
-  return (): Promise<any> => {
-    return apiService.loadConfig();
-  }
-}
+import {AppComponent} from '../app.component';
+import { DownloadDialogComponent } from './download-dialog/download-dialog.component';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    NavBarComponent,
-    FooterComponent,
-    FormComponent,
+    DownloadDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -54,17 +43,7 @@ export function initializeApp(apiService: ApiService) {
     MatListModule,
     MatSelectModule,
     MatProgressBarModule,
-    FormModule
-  ],
-  providers: [
-    ApiService,
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeApp,
-      deps: [ApiService],
-      multi: true
-    }
-  ],
-  bootstrap: [AppComponent]
+    MatDialogModule
+  ]
 })
-export class AppModule { }
+export class FormModule { }

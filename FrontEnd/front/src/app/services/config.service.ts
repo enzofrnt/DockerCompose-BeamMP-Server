@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, retry } from 'rxjs';
+import { BehaviorSubject, Observable, retry } from 'rxjs';
 import { Config } from '../models/config';
 import { ApiService } from './api.service';
 
@@ -22,5 +22,4 @@ export class ConfigService {
       retry(5)
     );
   }
-
 }

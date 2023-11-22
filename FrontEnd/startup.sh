@@ -1,2 +1,3 @@
 #!/bin/bash
-supervisord -c <(envsubst < /etc/supervisord.conf)
+envsubst < /etc/supervisord.conf > /tmp/supervisord.conf
+supervisord -c /tmp/supervisord.conf
